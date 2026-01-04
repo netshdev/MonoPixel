@@ -33,7 +33,7 @@ function App() {
       {/* Header */}
       <header className="max-w-4xl w-full flex flex-col items-center text-center mb-12">
         <div className="bg-white p-3 rounded-2xl shadow-sm mb-6 animate-in zoom-in duration-500">
-          <img src="public/logo.png" alt="MonoPixel Logo" className="size-8" />
+          <img src="logo.svg" alt="MonoPixel Logo" className="size-8" />
         </div>
         <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-mono-900 mb-4 animate-in slide-in-from-bottom-4 duration-500 delay-100">
           MonoPixel
