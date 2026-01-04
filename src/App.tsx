@@ -95,7 +95,7 @@ function App() {
       <footer className="mt-16 text-mono-400 text-sm flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
         <a href="https://github.com/netshdev" target="_blank" rel="noopener noreferrer">
           <Github className="size-4" />
-          <span>netshdevC</span>
+          <span>netshdev</span>
         </a>
       </footer>
 
