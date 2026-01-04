@@ -19,40 +19,51 @@ export const formatBytes = (bytes: number, decimals = 2) => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
 
+const getBlob = (canvas: HTMLCanvasElement, quality: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Conversion failed'));
+        }, 'image/webp', quality);
+    });
+};
+
 export const processImage = (file: File): Promise<ProcessedImageResult> => {
     return new Promise((resolve, reject) => {
         const img = new Image();
         const originalUrl = URL.createObjectURL(file);
 
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+        img.onload = async () => {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
 
-            if (!ctx) {
-                reject(new Error('Could not get canvas context'));
-                return;
-            }
-
-            ctx.drawImage(img, 0, 0);
-
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const data = imageData.data;
-
-            for (let i = 0; i < data.length; i += 4) {
-                const luma = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-                data[i] = luma;     // R
-                data[i + 1] = luma; // G
-                data[i + 2] = luma; // B
-            }
-
-            ctx.putImageData(imageData, 0, 0);
-
-            canvas.toBlob((blob) => {
-                if (!blob) {
-                    reject(new Error('Conversion failed'));
+                if (!ctx) {
+                    reject(new Error('Could not get canvas context'));
                     return;
+                }
+
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const data = imageData.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const luma = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+                    data[i] = luma;     // R
+                    data[i + 1] = luma; // G
+                    data[i + 2] = luma; // B
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+
+                let quality = 0.8;
+                let blob = await getBlob(canvas, quality);
+                while (blob.size >= file.size && quality > 0.1) {
+                    quality -= 0.1;
+                    blob = await getBlob(canvas, quality);
                 }
 
                 const processedUrl = URL.createObjectURL(blob);
@@ -68,7 +79,9 @@ export const processImage = (file: File): Promise<ProcessedImageResult> => {
                     reductionPercentage,
                     format: 'webp'
                 });
-            }, 'image/webp', 0.8);
+            } catch (err) {
+                reject(err);
+            }
         };
 
         img.onerror = () => reject(new Error('Failed to load image'));
